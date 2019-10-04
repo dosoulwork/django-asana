@@ -176,6 +176,11 @@ class ProjectStatus(BaseModel):
         max_length=24, null=True, blank=True, default='project_status')
     text = models.TextField(null=True, blank=True)
     title = models.CharField(max_length=1024)
+    #adding these fields to 
+    modified_at = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(
+        'User', to_field='remote_id', related_name='status_owner',
+        null=True, on_delete=models.SET_NULL)
 
     class Meta:
         ordering = ('-pk',)
