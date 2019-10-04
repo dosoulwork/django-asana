@@ -86,7 +86,7 @@ class Attachment(NamedModel):
     permanent_url = models.URLField(max_length=1024)
     resource_type = models.CharField(max_length=24, null=True, blank=True, default='attachment')
     type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
-    view_url = models.URLField(max_length=1024)
+    view_url = models.URLField(max_length=2048)
 
     def asana_url(self, **kwargs):
         return self.permanent_url

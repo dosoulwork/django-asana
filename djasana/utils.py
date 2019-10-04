@@ -71,6 +71,7 @@ def sync_attachment(client, task, attachment_id):
     if attachment_dict['parent']:
         attachment_dict['parent'] = task
     pop_unsupported_fields(attachment_dict, Attachment)
+    print("attachtment dict", attachment_dict)
     Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
 
 
