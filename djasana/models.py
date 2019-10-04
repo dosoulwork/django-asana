@@ -8,6 +8,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from .connect import client_connect
 
+from django.core.validators import URLValidator
+
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +88,8 @@ class Attachment(NamedModel):
     permanent_url = models.URLField(max_length=1024)
     resource_type = models.CharField(max_length=24, null=True, blank=True, default='attachment')
     type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
-    view_url = models.URLField(max_length=2048)
+    #view_url = models.URLField(max_length=2048)
+    view_url = models.TextField(validators=[URLValidator()])
 
     def asana_url(self, **kwargs):
         return self.permanent_url
