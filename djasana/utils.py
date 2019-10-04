@@ -94,7 +94,7 @@ def sync_project(client, project_dict):
     if project_status_dict['created_by']:
         created_by = project_status_dict.pop('created_by')
         User.objects.get_or_create(remote_id=created_by['id'], defaults={'name': created_by['name']})
-        project_status_dict['created_by__id'] = created_by['id']
+        project_status_dict['created_by_id'] = created_by['id']
     if project_status_dict['author']:
         author = project_status_dict.pop('author')
         User.objects.get_or_create(remote_id=author['id'], defaults={'name': author['name']})
