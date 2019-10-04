@@ -71,7 +71,6 @@ def sync_attachment(client, task, attachment_id):
     if attachment_dict['parent']:
         attachment_dict['parent'] = task
     pop_unsupported_fields(attachment_dict, Attachment)
-    print("attachtment dict", attachment_dict)
     Attachment.objects.get_or_create(remote_id=remote_id, defaults=attachment_dict)
 
 
@@ -91,7 +90,6 @@ def sync_project(client, project_dict):
     members_dict = project_dict.pop('members')
     followers_dict = project_dict.pop('followers')
     project_status_dict = project_dict.pop('current_status', None)
-    print("project status dict",project_status_dict)
     if project_status_dict:
         if project_status_dict['created_by']:
             created_by = project_status_dict.pop('created_by')
