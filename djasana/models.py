@@ -147,7 +147,7 @@ class Project(NamedModel):
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
     owner = models.ForeignKey(
-        'User', to_field='remote_id', related_name='projects_owned',
+        'User', to_field='remote_id', related_name='projects_owner',
         null=True, on_delete=models.SET_NULL)
     public = models.BooleanField(default=False)
     resource_type = models.CharField(max_length=24, null=True, blank=True, default='project')
