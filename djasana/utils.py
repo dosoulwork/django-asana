@@ -90,6 +90,7 @@ def sync_project(client, project_dict):
     members_dict = project_dict.pop('members')
     followers_dict = project_dict.pop('followers')
     project_status_dict = project_dict.pop('current_status', None)
+    print("project status dict",project_status_dict)
     pop_unsupported_fields(project_dict, Project)
     project = Project.objects.update_or_create(
         remote_id=remote_id, defaults=project_dict)[0]
