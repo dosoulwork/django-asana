@@ -109,3 +109,7 @@ class WorkspaceAdmin(admin.ModelAdmin):
     exclude = ('resource_type',)
     list_display = ('__str__', asana_link)
     readonly_fields = (asana_link, 'gid')
+
+#adding this for story
+
+admin.site.register(models.Story)
