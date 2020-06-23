@@ -138,4 +138,4 @@ class WorkspaceAdmin(admin.ModelAdmin):
 
 #adding this for story
 
-admin.site.register(models.Story)
+# admin.site.register(models.Story)
