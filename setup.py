@@ -30,16 +30,17 @@ def rq(s):
 
 def add_default(m):
     attr_name, attr_value = m.groups()
-    return ((attr_name, rq(attr_value)), )
+    return (attr_name, rq(attr_value)),
 
 
 def add_version(m):
     v = list(map(rq, m.groups()[0].split(', ')))
-    return (('VERSION', '.'.join(v[0:3]) + ''.join(v[3:])), )
+    return ('VERSION', '.'.join(v[0:3]) + ''.join(v[3:])),
 
 
 def add_doc(m):
-    return (('doc', m.groups()[0]), )
+    return ('doc', m.groups()[0]),
+
 
 pats = {re_meta: add_default,
         re_vers: add_version,
@@ -81,10 +82,7 @@ SKIP_EXTENSIONS = ['.pyc', '.pyo', '.swp', '.swo']
 
 
 def is_unwanted_file(filename):
-    for skip_ext in SKIP_EXTENSIONS:
-        if filename.endswith(skip_ext):
-            return True
-    return False
+    return any(filename.endswith(skip_ext) for skip_ext in SKIP_EXTENSIONS)
 
 
 for dirpath, dirnames, filenames in os.walk(src_dir):
@@ -185,7 +183,7 @@ setup(
     install_requires=[
         'django>=1.10',
         'asana>=0.9.0',
-        'django-braces>=1.13.0',
+        'django-braces>=1.13.0,<1.14',
     ],
     python_requires='~=3.5',
     cmdclass={'test': RunTests,

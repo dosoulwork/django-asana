@@ -92,6 +92,13 @@ class Attachment(NamedModel):
     type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
     #view_url = models.URLField(max_length=2048)
     view_url = models.TextField(validators=[URLValidator()])
+#   download_url = models.URLField(max_length=5120)
+#   host = models.CharField(choices=host_choices, max_length=24)
+#   parent = models.ForeignKey('Task', to_field='remote_id', on_delete=models.CASCADE)
+#   permanent_url = models.URLField(max_length=5120)
+#   resource_type = models.CharField(max_length=24, null=True, blank=True, default='attachment')
+#   type = models.CharField(choices=type_choices, max_length=24, null=True, blank=True)
+#   view_url = models.URLField(max_length=5120)
 
     def asana_url(self, **kwargs):
         return self.permanent_url
@@ -109,6 +116,7 @@ class CustomField(NamedModel):
     description = models.CharField(max_length=1024, null=True, blank=True)
     enum_options = models.CharField(max_length=1024, null=True, blank=True)
     is_global_to_workspace = models.BooleanField(default=False)
+    has_notifications_enabled = models.BooleanField(default=False)
     precision = models.SmallIntegerField(choices=precision_choices, null=True, blank=True)
     resource_subtype = models.CharField(
         choices=subtype_choices, max_length=24, null=True, blank=True)
@@ -130,9 +138,11 @@ class CustomFieldSetting(BaseModel):
 
 class Project(NamedModel):
     """An Asana project in a workspace having a collection of tasks."""
-    layout_choices = (
+    default_view_choices = (
         ('board', _('board')),
+        ('calendar', _('calendar')),
         ('list', _('list')),
+        ('timeline', _('timeline')),
     )
 
     archived = models.BooleanField(default=False)
@@ -142,12 +152,14 @@ class Project(NamedModel):
         'ProjectStatus', null=True, on_delete=models.SET_NULL, related_name='current_status')
     custom_field_settings = models.ManyToManyField(
         'CustomField', through='CustomFieldSetting', related_name='custom_field_settings')
+    default_view = models.CharField(
+        choices=default_view_choices, max_length=16, null=True, blank=True)
     due_date = models.DateField(null=True, blank=True)
     due_on = models.DateField(null=True, blank=True)
     followers = models.ManyToManyField('User', related_name='projects_following', blank=True)
     html_notes = models.TextField(null=True, blank=True)
     is_template = models.BooleanField(default=False)
-    layout = models.CharField(choices=layout_choices, max_length=16)
+    layout = models.CharField(choices=default_view_choices, max_length=16)
     members = models.ManyToManyField('User', blank=True)
     modified_at = models.DateTimeField(auto_now=True)
     notes = models.TextField(null=True, blank=True)
@@ -345,10 +357,9 @@ class Task(Hearted, NamedModel):
         task_dict = client.tasks.find_by_id(self.remote_id)
         if task_dict['assignee']:
             user = User.objects.get_or_create(
-                remote_id=task_dict['assignee']['id'],
+                remote_id=task_dict['assignee']['gid'],
                 defaults={'name': task_dict['assignee']['name']})[0]
             task_dict['assignee'] = user
-        task_dict.pop('id')
         task_dict.pop('dependents', None)
         dependencies = task_dict.pop('dependencies', None)
         task_dict.pop('hearts', None)
@@ -361,16 +372,16 @@ class Task(Hearted, NamedModel):
         for field, value in task_dict.items():
             setattr(self, field, value)
         self.save()
-        follower_ids = [follower['id'] for follower in followers_dict]
+        follower_ids = [follower['gid'] for follower in followers_dict]
         followers = User.objects.filter(id__in=follower_ids)
         self.followers.set(followers)
         for tag_ in tags_dict:
             tag = Tag.objects.get_or_create(
-                remote_id=tag_['id'],
+                remote_id=tag_['gid'],
                 defaults={'name': tag_['name']})[0]
             self.tags.add(tag)
         if dependencies:
-            self.dependencies.set([dep['id'] for dep in dependencies])
+            self.dependencies.set([dep['gid'] for dep in dependencies])
 
     def sync_to_asana(self, fields=None):
         """Updates Asana to match values from this task.
@@ -389,9 +400,7 @@ class Task(Hearted, NamedModel):
         >> task.sync_to_asana(fields=('notes', 'due_on'))
         """
         fields = fields or ['completed']
-        data = {}
-        for field in fields:
-            data[field] = getattr(self, field)
+        data = {field: getattr(self, field) for field in fields}
         client = client_connect()
         client.tasks.update(self.remote_id, data)
         logger.debug('Updated asana for task %s', self.name)
@@ -444,7 +453,7 @@ class User(NamedModel):
     def refresh_from_asana(self):
         client = client_connect()
         user_dict = client.users.find_by_id(self.remote_id)
-        user_dict.pop('id')
+        user_dict.pop('gid', None)
         user_dict.pop('workspaces')
         if user_dict['photo']:
             user_dict['photo'] = user_dict['photo']['image_128x128']
